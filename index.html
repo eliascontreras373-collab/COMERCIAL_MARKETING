@@ -2144,6 +2144,7 @@ function renderContratante(fil) {
             const ordenesCiru = await tryLoadCsvVariants(['ORDENES_CIRUGIA.csv', 'ORDENES_CIRUGIA.CSV']);
             const ordenesFarm = await tryLoadCsvVariants(['ORDENES_FARMACIA.csv', 'ORDENES_FARMACIA.CSV']);
             const ordenesExam = await tryLoadCsvVariants(['ORDENES_EXAM.csv', 'ORDENES_EXAM.CSV']);
+            const ordenesOptica = await tryLoadCsvVariants(['ORDENES_OPTICA.csv', 'ORDENES_OPTICA.CSV']);
             const presupuestos = await tryLoadCsvVariants(['PRESUPUESTOS.csv', 'PRESUPUESTOS.CSV']);
 
             // NO_SHOW (solo ATENDIDO = SI): suma de pacientes únicos por ORIGEN_CITADO
@@ -2187,7 +2188,7 @@ function renderContratante(fil) {
             // ---------------------------------------------------------------
             // SEDE VERDADERA POR PACIENTE Y MES (cruce con NO_SHOW, solo ATENDIDO = SI)
             // Para DIAGNOSTICOS, ORDENES_CIRUGIA, ORDENES_PROCD, ORDENES_LAB,
-            // ORDENES_FARMACIA, ORDENES_EXAM y PRESUPUESTOS la columna SEDE propia
+            // ORDENES_FARMACIA, ORDENES_EXAM, ORDENES_OPTICA y PRESUPUESTOS la columna SEDE propia
             // no es confiable. En vez de usarla, se cruza el nombre del paciente
             // con CONSULTAS (columna PACNAM) y, dentro del mismo mes, se toma el
             // registro con la fecha (CITDAT) más antigua; el SEDE de ese registro
@@ -2238,8 +2239,15 @@ function renderContratante(fil) {
                     const rowSede = normalizeSedeTexto(val(row, ['SEDE', 'Sede', 'SEDEXX', 'SEDE LINCE', 'SEDE_LINCE', 'LINCE']) || row.sedeXX || row.SEDEXX || row.SEDE || row.LINCE || '');
                     const rowAnio = String(val(row, ['AÑO', 'ANIO', 'AÑOS', 'ANOS', 'ANO', 'YEAR', 'Year']) || row.anio || row.ANIO || row['AÑO'] || row['AÑOS'] || '').trim();
                     const rowMes = String(val(row, ['MES', 'Mes']) || row.mes || row.MES || '').toUpperCase();
-                    const rowDia = String(val(row, ['DIA', 'Dia', 'Day']) || row.dia || row.DIA || '').toUpperCase();
-                    const fecha = normFecha(row.fecha || val(row, ['FECHA', 'Fecha', 'fecha', 'FECHA ATENCION', 'Fecha Atención', 'FECHA_HORA_CITA', 'CITDAT']) || '');
+                    const fecha = normFecha(row.fecha || val(row, [
+                        'FECHA', 'Fecha', 'fecha',
+                        'FECHA_CREACION', 'FECHA CREACION',
+                        'FECHA ATENCION', 'Fecha Atención',
+                        'FECHA_HORA_CITA', 'CITDAT'
+                    ]) || '');
+                    const rowDia = String(
+                        val(row, ['DIA', 'Dia', 'Day']) || row.dia || row.DIA || (fecha ? fecha.substring(0, 2) : '')
+                    ).toUpperCase();
                     const rowSemana = etiquetaSemanaDesdeFecha(fecha);
                     if (fSedeVal && fSedeVal !== 'TODOS') {
                         const sedeFilter = normalizeSedeTexto(fSedeVal);
@@ -2330,11 +2338,23 @@ function renderContratante(fil) {
             const farmJun = ordenesFarm.filter(r => rowMatchesFiltersBasic(r, ['NOMBRES_PCTE', 'NOMBRES_PCTE ']));
             const examJun = ordenesExam.filter(r => rowMatchesFiltersBasic(r, ['NOMBRES_PCTE', 'NOMBRES_PCTE ']));
 
+            // ÓPTICA: solo se consideran las filas cuya PRESCRIPCION indique exactamente
+            // "SI NECESITA LENTES". Igual que las demás órdenes, se cuentan pacientes únicos.
+            const opticaJun = ordenesOptica.filter(r => {
+                const necesitaLentes = normalizaUsuario(val(r, ['PRESCRIPCION', 'PRESCRIPCIÓN'])) === 'SI NECESITA LENTES';
+                return necesitaLentes && rowMatchesFiltersBasic(r, ['NOMBRES', 'NOMBRE', 'PACIENTE']);
+            });
+
             const ordLab = new Set(labJun.map(r => normalizaUsuario(r['NOMBRES_PCTE'] || r['NOMBRES_PCTE '] || r['NOMBRES_PCTE']))).size;
             const ordProc = new Set(procJun.map(r => normalizaUsuario(r['NOMBRES_PCTE'] || r['NOMBRES_PCTE ']))).size;
             const ordCiru = new Set(ciruJun.map(r => normalizaUsuario(r['NOMBRES_PCTE'] || r['NOMBRES_PCTE ']))).size;
             const ordFarm = new Set(farmJun.map(r => normalizaUsuario(r['NOMBRES_PCTE'] || r['NOMBRES_PCTE ']))).size;
             const ordExam = new Set(examJun.map(r => normalizaUsuario(r['NOMBRES_PCTE'] || r['NOMBRES_PCTE ']))).size;
+            const ordOptica = new Set(
+                opticaJun
+                    .map(r => normalizaUsuario(val(r, ['NOMBRES', 'NOMBRE', 'PACIENTE'])))
+                    .filter(Boolean)
+            ).size;
 
             // PRESUPUESTOS: map codes to lines
             const presMap = { 'LA': 'LABORATORIO', 'LAB': 'LABORATORIO', 'TA': 'PROCEDIMIENTO', 'IN': 'CIRUGIA', 'FA': 'FARMACIA', 'EA': 'EXAMENES' };
@@ -2396,7 +2416,19 @@ function renderContratante(fil) {
             rows.push({ linea: 'GENERAL', consulta: consultaGeneral, diagnostico: diagGeneralN, pctDiagnostico: pct(diagGeneralN, consultaGeneral), orden: ordenGeneral, pctOrden: pct(ordenGeneral, diagGeneralN), presupuesto: presGeneral, pctPresupuesto: pct(presGeneral, ordenGeneral), venta: ventaGeneral, ventaPresupuesto: presGeneral ? pct(ventaGeneral, presGeneral) : '0.00%', ventaOrden: ordenGeneral ? pct(ventaGeneral, ordenGeneral) : '0.00%' });
 
             // ÓPTICA
-            rows.push({ linea: 'ÓPTICA', consulta: consultaCount, diagnostico: diagOptica, pctDiagnostico: pct(diagOptica, consultaCount), orden: 0, pctOrden: pct(0, diagOptica), presupuesto: 0, pctPresupuesto: pct(0,0), venta: ventaCounts['OPTICA'], ventaPresupuesto: '0.00%', ventaOrden: '0.00%' });
+            rows.push({
+                linea: 'ÓPTICA',
+                consulta: consultaCount,
+                diagnostico: diagOptica,
+                pctDiagnostico: pct(diagOptica, consultaCount),
+                orden: ordOptica,
+                pctOrden: pct(ordOptica, diagOptica),
+                presupuesto: 0,
+                pctPresupuesto: pct(0, ordOptica),
+                venta: ventaCounts['OPTICA'],
+                ventaPresupuesto: '0.00%',
+                ventaOrden: ordOptica ? pct(ventaCounts['OPTICA'], ordOptica) : '0.00%'
+            });
 
             // LABORATORIO
             rows.push({ linea: 'LABORATORIO', consulta: consultaCount, diagnostico: '', pctDiagnostico: '0.00%', orden: ordLab, pctOrden: '0.00%', presupuesto: presLab, pctPresupuesto: pct(presLab, ordLab), venta: ventaCounts['LABORATORIO'], ventaPresupuesto: presLab ? pct(ventaCounts['LABORATORIO'], presLab) : '0.00%', ventaOrden: ordLab ? pct(ventaCounts['LABORATORIO'], ordLab) : '0.00%' });
@@ -2794,11 +2826,77 @@ function renderContratante(fil) {
         return p.length === 3 ? p[1] : '';
     }
 
-    function mapaMetasConsultasNoShow() {
+    // Devuelve la meta de consultas correspondiente a la sede seleccionada.
+    // Admite dos formatos en metas_consultas.csv:
+    // 1) Columnas separadas: CENTRO, NORTE y LINCE.
+    // 2) Filas por sede: SEDE + META.
+    function metaConsultaFilaPorSede(row, sedeSeleccionada) {
+        const sedeSel = normalizeSedeTexto(sedeSeleccionada || 'TODOS') || 'TODOS';
+        const existeColumna = nombres => nombres.some(nombre =>
+            Object.prototype.hasOwnProperty.call(row, normKey(nombre))
+        );
+        const numero = nombres => cleanNum(val(row, nombres));
+
+        const columnasCentro = [
+            'CENTRO', 'META CENTRO', 'META_CENTRO',
+            'CONSULTAS CENTRO', 'CONSULTAS_CENTRO'
+        ];
+        const columnasNorte = [
+            'NORTE', 'META NORTE', 'META_NORTE',
+            'CONSULTAS NORTE', 'CONSULTAS_NORTE'
+        ];
+        const columnasLince = [
+            'LINCE', 'META LINCE', 'META_LINCE',
+            'CONSULTAS LINCE', 'CONSULTAS_LINCE'
+        ];
+        const columnasMetaGeneral = [
+            'META', 'META CONSULTAS', 'META_CONSULTAS',
+            'OBJETIVO', 'OBJETIVO CONSULTAS', 'CONSULTAS META'
+        ];
+
+        const metaCentro = numero(columnasCentro);
+        const metaNorte = numero(columnasNorte);
+        const metaLince = numero(columnasLince);
+        const metaGeneral = numero(columnasMetaGeneral);
+        const filaSede = normalizeSedeTexto(val(row, [
+            'SEDE', 'SEDEXX', 'LOCAL', 'SUCURSAL', 'CLINICA'
+        ]));
+
+        const tieneCentro = existeColumna(columnasCentro);
+        const tieneNorte = existeColumna(columnasNorte);
+        const tieneLince = existeColumna(columnasLince);
+        const tieneColumnasPorSede = tieneCentro || tieneNorte || tieneLince;
+
+        if (sedeSel === 'CENTRO') {
+            if (tieneCentro) return metaCentro;
+            return filaSede === 'CENTRO' ? metaGeneral : 0;
+        }
+        if (sedeSel === 'NORTE') {
+            if (tieneNorte) return metaNorte;
+            return filaSede === 'NORTE' ? metaGeneral : 0;
+        }
+        if (sedeSel === 'LINCE') {
+            if (tieneLince) return metaLince;
+            return filaSede === 'LINCE' ? metaGeneral : 0;
+        }
+
+        // Al elegir TODAS, suma las tres sedes cuando el archivo viene en formato ancho.
+        // Cuando viene una fila por sede, cada META se suma de forma natural.
+        if (tieneColumnasPorSede) return metaCentro + metaNorte + metaLince;
+        return metaGeneral;
+    }
+
+    function mapaMetasConsultasNoShow(sedeSeleccionada) {
+        const sedeSel = normalizeSedeTexto(sedeSeleccionada || 'TODOS') || 'TODOS';
         const mapa = {};
-        Object.entries(META_CONSULTAS_RESPALDO).forEach(([anio, meses]) => {
-            mapa[anio] = { ...meses };
-        });
+
+        // El respaldo histórico es una meta global. Solo se usa cuando están seleccionadas
+        // todas las sedes, porque no contiene distribución por CENTRO, NORTE y LINCE.
+        if (sedeSel === 'TODOS') {
+            Object.entries(META_CONSULTAS_RESPALDO).forEach(([anio, meses]) => {
+                mapa[anio] = { ...meses };
+            });
+        }
 
         const externo = {};
         (metasConsultasNoShow || []).forEach(row => {
@@ -2806,10 +2904,8 @@ function renderContratante(fil) {
             const anioFecha = fecha && fecha.split('/').length === 3 ? fecha.split('/')[2] : '';
             const anio = String(val(row, ['AÑO', 'ANIO', 'AÑOS', 'ANOS']) || anioFecha).trim();
             const mes = mesNumeroNoShow(val(row, ['MES', 'MES NUMERO', 'MES_NUMERO']), fecha);
-            const meta = cleanNum(val(row, [
-                'META', 'META CONSULTAS', 'META_CONSULTAS',
-                'OBJETIVO', 'OBJETIVO CONSULTAS', 'CONSULTAS META'
-            ]));
+            const meta = metaConsultaFilaPorSede(row, sedeSel);
+
             if (!anio || !mes || meta <= 0) return;
             if (!externo[anio]) externo[anio] = {};
             externo[anio][mes] = (externo[anio][mes] || 0) + meta;
@@ -2929,7 +3025,8 @@ function renderContratante(fil) {
     }
 
     function renderResumenNoShow(rows) {
-        const metasMapa = mapaMetasConsultasNoShow();
+        const sedeMetaSeleccionada = normalizeSedeTexto(document.getElementById('fSede').value || 'TODOS') || 'TODOS';
+        const metasMapa = mapaMetasConsultasNoShow(sedeMetaSeleccionada);
         const mensual = datosMensualesNoShow(rows);
         const anioFiltro = String(document.getElementById('fAnio').value || 'TODOS').trim();
         const mesesFiltro = getCheckedValues('mes').map(v => String(v).toUpperCase().trim());
