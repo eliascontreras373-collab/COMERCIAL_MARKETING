@@ -397,7 +397,7 @@ select:focus, .multi-btn:focus {
 
 .dashboard-actions {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 13px;
     margin: 26px 0 16px;
 }
@@ -598,6 +598,158 @@ select:focus, .multi-btn:focus {
 .consejeras-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 15px; }
 .consejeras-mini-box { padding: 14px; overflow-x: auto; background: #fff; border: 1px solid var(--line); border-radius: 12px; }
 
+/* ---------------- Participación de Mercado: vista compacta ---------------- */
+.market-box {
+    padding: 15px 16px 16px;
+}
+.market-box .section-title {
+    margin-bottom: 7px;
+}
+.market-subtitle {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.45;
+}
+.market-scope-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    margin: 0 0 12px;
+    padding: 5px 10px;
+    color: var(--primary-dark);
+    background: var(--accent-soft);
+    border: 1px solid #CFE9D9;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 900;
+    letter-spacing: .25px;
+    text-transform: uppercase;
+}
+.market-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 9px;
+    margin: 0 0 12px;
+}
+.market-kpi {
+    min-height: 82px;
+    padding: 12px 13px;
+    background: #F8FBF9;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+}
+.market-kpi span {
+    display: block;
+    color: var(--muted);
+    font-size: 9.5px;
+    font-weight: 900;
+    letter-spacing: .35px;
+    line-height: 1.25;
+    text-transform: uppercase;
+}
+.market-kpi strong {
+    display: block;
+    margin-top: 6px;
+    color: var(--primary-dark);
+    font-family: var(--title-font);
+    font-size: clamp(20px, 2vw, 27px);
+    line-height: 1;
+}
+.market-kpi.highlight {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border-color: transparent;
+}
+.market-kpi.highlight span { color: #D8F3E6; }
+.market-kpi.highlight strong { color: #fff; }
+.market-table-wrap {
+    max-height: 390px;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+}
+.market-table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 11px;
+}
+.market-table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 9px 10px;
+    color: #fff;
+    background: var(--primary);
+    font-size: 9.5px;
+    font-weight: 900;
+    letter-spacing: .25px;
+    text-align: center;
+    text-transform: uppercase;
+}
+.market-table td {
+    padding: 8px 10px;
+    color: var(--ink);
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    text-align: center;
+    vertical-align: middle;
+}
+.market-table td:first-child,
+.market-table th:first-child {
+    text-align: left;
+}
+.market-table tbody tr:last-child td { border-bottom: 0; }
+.market-table tbody tr:hover td { background: #F7FBF9; }
+.market-own-row td {
+    background: #EAF7EF !important;
+    color: var(--primary-deep);
+    font-weight: 900;
+}
+.market-share-cell {
+    min-width: 155px;
+}
+.market-share-line {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.market-share-track {
+    flex: 1;
+    height: 6px;
+    overflow: hidden;
+    background: #E7EFEB;
+    border-radius: 99px;
+}
+.market-share-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 99px;
+}
+.market-share-value {
+    min-width: 48px;
+    color: var(--primary-dark);
+    font-weight: 900;
+    text-align: right;
+}
+.market-empty {
+    padding: 18px;
+    color: var(--muted);
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+}
+@media (max-width: 850px) {
+    .market-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+    .market-box { padding: 12px; }
+    .market-kpi-grid { grid-template-columns: 1fr 1fr; gap: 7px; }
+    .market-kpi { min-height: 76px; padding: 10px; }
+}
+
 .dashboard-footer {
     display: flex;
     align-items: center;
@@ -777,12 +929,20 @@ select:focus, .multi-btn:focus {
 
         <div class="dashboard-actions">
             <button class="btn-final" onclick="toggleConversion()">Conversión</button>
+            <button class="btn-final" onclick="toggleMarketShare()">Participación de Mercado</button>
             <button class="btn-final" onclick="toggleNoShow()">Gestión de Citas</button>
         </div>
 
         <div id="boxConversion" class="consejeras-box" style="display:none;">
             <div class="section-title" style="margin-top:0;">Conversión</div>
             <div id="convContent" style="overflow-x:auto; padding:6px;"></div>
+        </div>
+
+        <div id="boxMarketShare" class="consejeras-box market-box" style="display:none;">
+            <div class="section-title" style="margin-top:0;">Participación de Mercado</div>
+            <p class="market-subtitle" style="display:none;"></p>
+            <div id="marketScopeChip" class="market-scope-chip" style="display:none;">Todo · todas las clínicas</div>
+            <div id="marketContent"><div class="info">Abre el módulo para cargar la participación de mercado.</div></div>
         </div>
 
         <div id="boxNoShow" class="consejeras-box" style="display:none;">
@@ -1458,6 +1618,11 @@ function update() {
         loadConversion();
     }
 
+    const marketBox = document.getElementById('boxMarketShare');
+    if (marketBox && marketBox.classList.contains('show')) {
+        loadMarketShare();
+    }
+
     const pendBox = document.getElementById('boxPendientesQx');
     if (pendBox && pendBox.classList.contains('show')) {
         loadPendientesQx();
@@ -2115,6 +2280,271 @@ function renderContratante(fil) {
             }
         }
         return [];
+    }
+
+    /* --------------------- Participación de Mercado --------------------- */
+    let marketShareData = [];
+    let marketShareLoaded = false;
+
+    const MARKET_DISTRICTS_NORTE = ['COMAS', 'LOS OLIVOS'];
+    const MARKET_DISTRICTS_CENTRO_LINCE = [
+        'CERCADO', 'JESUS MARIA', 'SAN ISIDRO', 'MIRAFLORES', 'LIMA', 'SAN BORJA'
+    ];
+
+    function normalizaMercado(txt) {
+        return String(txt || '')
+            .toUpperCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    function mesMercadoNumero(txt) {
+        const s = normalizaMercado(txt);
+        const alias = {
+            'ENERO':'01',
+            'FEBRERO':'02',
+            'FEBREBRO':'02',
+            'MARZO':'03',
+            'ABRIL':'04',
+            'MAYO':'05',
+            'JUNIO':'06',
+            'JULIO':'07',
+            'AGOSTO':'08',
+            'SETIEMBRE':'09',
+            'SEPTIEMBRE':'09',
+            'OCTUBRE':'10',
+            'NOVIEMBRE':'11',
+            'DICIEMBRE':'12'
+        };
+        if (alias[s]) return alias[s];
+        const n = Number(String(txt || '').trim());
+        return n >= 1 && n <= 12 ? String(n).padStart(2, '0') : '';
+    }
+
+    function esClinicaOftalmoMedic(nombre) {
+        return normalizaMercado(nombre).includes('OFTALMOMEDIC');
+    }
+
+    function sedeOftalmoMedicMercado(nombre) {
+        const n = normalizaMercado(nombre);
+        if (!n.includes('OFTALMOMEDIC')) return '';
+        if (n.includes('LIMA NORTE') || n.includes('NORTE')) return 'NORTE';
+        if (n.includes('LINCE')) return 'LINCE';
+        return 'CENTRO';
+    }
+
+    function filaEnAmbitoMercado(row, sedeSel) {
+        const sede = normalizeSedeTexto(sedeSel || 'TODOS') || 'TODOS';
+        const distrito = normalizaMercado(row.distrito);
+        const propia = row.esOftalmoMedic;
+        const sedePropia = row.sedeOftalmoMedic;
+
+        if (sede === 'TODOS') return true;
+
+        // Cuando se selecciona una sede, de OftalmoMedic se muestra únicamente
+        // la sede correspondiente. Las demás clínicas se filtran por distrito.
+        if (propia) return sedePropia === sede;
+
+        if (sede === 'NORTE') {
+            return MARKET_DISTRICTS_NORTE.includes(distrito);
+        }
+
+        if (sede === 'CENTRO' || sede === 'LINCE') {
+            return MARKET_DISTRICTS_CENTRO_LINCE.includes(distrito);
+        }
+
+        return true;
+    }
+
+    function textoAmbitoMercado(sedeSel) {
+        const sede = normalizeSedeTexto(sedeSel || 'TODOS') || 'TODOS';
+        if (sede === 'NORTE') return 'Norte · Comas + Los Olivos';
+        if (sede === 'CENTRO') return 'Centro · Cercado + Jesús María + San Isidro + Miraflores + Lima + San Borja';
+        if (sede === 'LINCE') return 'Lince · Cercado + Jesús María + San Isidro + Miraflores + Lima + San Borja';
+        return 'Todo · todas las clínicas';
+    }
+
+    function toggleMarketShare() {
+        const box = document.getElementById('boxMarketShare');
+        if (!box) return;
+        box.classList.toggle('show');
+        box.style.display = box.classList.contains('show') ? 'block' : 'none';
+        if (box.classList.contains('show')) {
+            loadMarketShare();
+            try { box.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch(e){}
+        }
+    }
+
+    async function asegurarMarketShareData() {
+        if (marketShareLoaded) return;
+
+        const rows = await tryLoadCsvVariants([
+            'PARTICIPACION DE MERCADO.csv',
+            'PARTICIPACION DE MERCADO.CSV',
+            'PARTICIPACIÓN DE MERCADO.csv',
+            'PARTICIPACIÓN DE MERCADO.CSV'
+        ]);
+
+        if (!rows.length) {
+            throw new Error('No se pudo cargar PARTICIPACION DE MERCADO.csv. Verifica que esté en la misma carpeta que el HTML.');
+        }
+
+        marketShareData = rows.map(row => {
+            const clinica = String(val(row, ['CLINICA DESCRIPCION', 'Clinica Descripcion', 'CLÍNICA DESCRIPCIÓN']) || '').trim();
+            const distrito = String(val(row, ['DISTRITO', 'Distrito']) || '').trim();
+            const mesTexto = String(val(row, ['MES', 'Mes']) || '').trim();
+            const mesNumeroArchivo = String(val(row, ['MES NUMERO', 'MES NÚMERO', 'Mes Numero']) || '').trim();
+            const mesNumero = mesMercadoNumero(mesNumeroArchivo || mesTexto);
+            const anio = String(val(row, ['AÑO', 'ANIO', 'Año']) || '').trim();
+            const atenciones = cleanNum(val(row, ['CANT ATENCIONES MEDICAS', 'Cant Atenciones Medicas', 'ATENCIONES MEDICAS']));
+            const cirugiaMayor = cleanNum(val(row, ['CIRUGIA MAYOR EFECTIVA', 'Cirugia Mayor Efectiva']));
+            const cirugiaMenor = cleanNum(val(row, ['CIRUGIA MENOR EFECTIVA', 'Cirugia Menor Efectiva']));
+            const esOftalmo = esClinicaOftalmoMedic(clinica);
+
+            return {
+                clinica,
+                distrito,
+                distritoNorm: normalizaMercado(distrito),
+                mesTexto,
+                mesNumero,
+                anio,
+                atenciones,
+                cirugiaMayor,
+                cirugiaMenor,
+                esOftalmoMedic: esOftalmo,
+                sedeOftalmoMedic: esOftalmo ? sedeOftalmoMedicMercado(clinica) : ''
+            };
+        }).filter(r => r.clinica);
+
+        marketShareLoaded = true;
+    }
+
+    async function loadMarketShare() {
+        const out = document.getElementById('marketContent');
+        const chip = document.getElementById('marketScopeChip');
+        if (!out) return;
+
+        out.innerHTML = '<div class="info">Cargando participación de mercado...</div>';
+
+        try {
+            await asegurarMarketShareData();
+
+            const sedeSel = normalizeSedeTexto(document.getElementById('fSede').value || 'TODOS') || 'TODOS';
+            const anioSel = String(document.getElementById('fAnio').value || 'TODOS').trim();
+            const mesesSel = getCheckedValues('mes');
+            const mesesNumeroSel = mesesSel.map(mesMercadoNumero).filter(Boolean);
+
+            if (chip) chip.textContent = textoAmbitoMercado(sedeSel);
+
+            const base = marketShareData.filter(r => {
+                if (anioSel !== 'TODOS' && r.anio !== anioSel) return false;
+                if (mesesNumeroSel.length && !mesesNumeroSel.includes(r.mesNumero)) return false;
+                return filaEnAmbitoMercado(r, sedeSel);
+            });
+
+            // Se agrupa por clínica + distrito para no mezclar locales con el mismo nombre
+            // que operan en distritos distintos.
+            const grupos = {};
+            base.forEach(r => {
+                const key = `${normalizaMercado(r.clinica)}|${r.distritoNorm}`;
+                if (!grupos[key]) {
+                    grupos[key] = {
+                        clinica: r.clinica,
+                        distrito: r.distrito,
+                        atenciones: 0,
+                        cirugiaMayor: 0,
+                        cirugiaMenor: 0,
+                        esOftalmoMedic: r.esOftalmoMedic,
+                        sedeOftalmoMedic: r.sedeOftalmoMedic
+                    };
+                }
+                grupos[key].atenciones += r.atenciones || 0;
+                grupos[key].cirugiaMayor += r.cirugiaMayor || 0;
+                grupos[key].cirugiaMenor += r.cirugiaMenor || 0;
+            });
+
+            const lista = Object.values(grupos).sort((a, b) => {
+                const dif = b.atenciones - a.atenciones;
+                if (dif !== 0) return dif;
+                return a.clinica.localeCompare(b.clinica, 'es');
+            });
+
+            if (!lista.length) {
+                out.innerHTML = '<div class="market-empty">No existen clínicas para los filtros seleccionados.</div>';
+                return;
+            }
+
+            const totalAtenciones = lista.reduce((s, r) => s + r.atenciones, 0);
+            // Cirugías totales = Cirugía Mayor Efectiva + Cirugía Menor Efectiva
+            // para todas las clínicas incluidas en el ámbito y filtros seleccionados.
+            const totalCirugiaMayor = lista.reduce((s, r) => s + (r.cirugiaMayor || 0), 0);
+            const totalCirugiaMenor = lista.reduce((s, r) => s + (r.cirugiaMenor || 0), 0);
+            const totalCirugias = totalCirugiaMayor + totalCirugiaMenor;
+            const oftalmoRows = lista.filter(r => r.esOftalmoMedic);
+            const oftalmoAtenciones = oftalmoRows.reduce((s, r) => s + r.atenciones, 0);
+            const participacionOftalmo = totalAtenciones > 0 ? (oftalmoAtenciones / totalAtenciones) * 100 : 0;
+            const clinicasConActividad = lista.filter(r => r.atenciones > 0).length;
+
+            const periodoTxt = mesesNumeroSel.length
+                ? mesesNumeroSel.map(m => MESES_NOMBRE[m] || m).join(', ')
+                : 'Todos los meses';
+
+            let html = `
+                <div class="market-kpi-grid">
+                    <div class="market-kpi"><span>Clínicas en el ámbito</span><strong>${lista.length.toLocaleString('es-PE')}</strong></div>
+                    <div class="market-kpi"><span>Con atenciones registradas</span><strong>${clinicasConActividad.toLocaleString('es-PE')}</strong></div>
+                    <div class="market-kpi"><span>Atenciones del mercado</span><strong>${Math.round(totalAtenciones).toLocaleString('es-PE')}</strong></div>
+                    <div class="market-kpi"><span>Cirugías totales</span><strong>${Math.round(totalCirugias).toLocaleString('es-PE')}</strong></div>
+                    <div class="market-kpi highlight"><span>Participación OftalmoMedic</span><strong>${participacionOftalmo.toFixed(1)}%</strong></div>
+                </div>
+                <div class="market-subtitle" style="margin-bottom:9px;">
+                    Periodo: <strong>${escapeHtml(periodoTxt)}</strong>${anioSel !== 'TODOS' ? ` · Año: <strong>${escapeHtml(anioSel)}</strong>` : ''}.
+                    OftalmoMedic registra <strong>${Math.round(oftalmoAtenciones).toLocaleString('es-PE')}</strong> atenciones dentro de este ámbito.
+                </div>
+                <div class="market-table-wrap">
+                    <table class="market-table">
+                        <thead>
+                            <tr>
+                                <th>Clínica</th>
+                                <th>Distrito</th>
+                                <th>Atenciones</th>
+                                <th>Cirugía Mayor</th>
+                                <th>Cirugía Menor</th>
+                                <th>Cirugías Totales</th>
+                                <th>Participación</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            lista.forEach(r => {
+                const share = totalAtenciones > 0 ? (r.atenciones / totalAtenciones) * 100 : 0;
+                const rowClass = r.esOftalmoMedic ? 'market-own-row' : '';
+                const width = Math.max(0, Math.min(100, share));
+                const cirugiasTotales = (r.cirugiaMayor || 0) + (r.cirugiaMenor || 0);
+                html += `
+                    <tr class="${rowClass}">
+                        <td>${escapeHtml(r.clinica)}</td>
+                        <td>${escapeHtml(r.distrito || '-')}</td>
+                        <td>${Math.round(r.atenciones).toLocaleString('es-PE')}</td>
+                        <td>${Math.round(r.cirugiaMayor || 0).toLocaleString('es-PE')}</td>
+                        <td>${Math.round(r.cirugiaMenor || 0).toLocaleString('es-PE')}</td>
+                        <td><strong>${Math.round(cirugiasTotales).toLocaleString('es-PE')}</strong></td>
+                        <td class="market-share-cell">
+                            <div class="market-share-line">
+                                <div class="market-share-track"><div class="market-share-fill" style="width:${width.toFixed(2)}%"></div></div>
+                                <span class="market-share-value">${share.toFixed(1)}%</span>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+
+            html += `</tbody></table></div>`;
+            out.innerHTML = html;
+        } catch (e) {
+            console.error(e);
+            out.innerHTML = `<div class="alert" style="display:block;">Error al cargar Participación de Mercado: ${escapeHtml(e.message || String(e))}</div>`;
+        }
     }
 
     function rowIsJune(row) {
